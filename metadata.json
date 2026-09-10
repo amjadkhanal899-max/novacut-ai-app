@@ -1,0 +1,7 @@
+{
+  "name": "NovaCut AI",
+  "description": "Auto Video Editor & Shorts Creator with AI Scripting, ElevenLabs Voiceovers, Ken Burns Motion, and Multi-Track Timeline.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
