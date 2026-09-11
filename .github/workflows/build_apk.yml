@@ -23,28 +23,14 @@ jobs:
           flutter-version: '3.x'
           channel: 'stable'
 
-      - name: Locate Project Root & Install Dependencies
+      - name: Build Flutter APK
         run: |
-          if [ -f "pubspec.yaml" ]; then
-            echo "Project root found in base directory"
-            flutter pub get
-            flutter build apk --release --no-tree-shake-icons
-            echo "APK_PATH=build/app/outputs/flutter-apk/app-release.apk" >> $GITHUB_ENV
-          elif [ -f "app/pubspec.yaml" ]; then
-            echo "Project root found in app directory"
-            cd app
-            flutter pub get
-            flutter build apk --release --no-tree-shake-icons
-            echo "APK_PATH=app/build/app/outputs/flutter-apk/app-release.apk" >> $GITHUB_ENV
-          else
-            echo "Fallback to Android Gradle build..."
-            chmod +x gradlew || true
-            ./gradlew assembleRelease || (cd app && chmod +x gradlew && ./gradlew assembleRelease)
-            echo "APK_PATH=app/build/outputs/apk/release/app-release.apk" >> $GITHUB_ENV
-          fi
+          cd app
+          flutter pub get
+          flutter build apk --release --no-tree-shake-icons
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: novacut-release-apk
-          path: ${{ env.APK_PATH }}
+          path: app/build/app/outputs/flutter-apk/app-release.apk
