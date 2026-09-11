@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build APK
 
 on:
   push:
@@ -11,19 +11,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up Java
         uses: actions/setup-java@v4
         with:
-          java-version: '17'
           distribution: 'temurin'
+          java-version: '17'
 
-      - name: Build with Gradle
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+
+      - name: Locate Project Root & Install Dependencies
         run: |
-          chmod +x gradlew
-          ./gradlew assembleRelease
+          if [ -f "pubspec.yaml" ]; then
+            echo "Project root found in base directory"
+            flutter pub get
+            flutter build apk --release --no-tree-shake-icons
+            echo "APK_PATH=build/app/outputs/flutter-apk/app-release.apk" >> $GITHUB_ENV
+          elif [ -f "app/pubspec.yaml" ]; then
+            echo "Project root found in app directory"
+            cd app
+            flutter pub get
+            flutter build apk --release --no-tree-shake-icons
+            echo "APK_PATH=app/build/app/outputs/flutter-apk/app-release.apk" >> $GITHUB_ENV
+          else
+            echo "Fallback to Android Gradle build..."
+            chmod +x gradlew || true
+            ./gradlew assembleRelease || (cd app && chmod +x gradlew && ./gradlew assembleRelease)
+            echo "APK_PATH=app/build/outputs/apk/release/app-release.apk" >> $GITHUB_ENV
+          fi
 
-      - name: Upload APK
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: novacut-release-apk
-          path: app/build/outputs/apk/release/app-release.apk
+          path: ${{ env.APK_PATH }}
