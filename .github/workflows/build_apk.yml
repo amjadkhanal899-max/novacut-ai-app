@@ -24,20 +24,20 @@ jobs:
           flutter-version: '3.x'
           channel: 'stable'
 
-      - name: Auto-Detect Project Root & Build APK
+      - name: Deep Find pubspec.yaml & Build APK
         run: |
-          # Check where pubspec.yaml is located
-          if [ -f "pubspec.yaml" ]; then
-            TARGET_DIR="."
-          elif [ -f "app/pubspec.yaml" ]; then
-            TARGET_DIR="app"
-          else
-            echo "Error: pubspec.yaml not found!"
+          # Find the exact directory where pubspec.yaml lives
+          PUBSPEC_PATH=$(find . -name "pubspec.yaml" -not -path "*/.*" | head -n 1)
+          
+          if [ -z "$PUBSPEC_PATH" ]; then
+            echo "Error: pubspec.yaml is completely missing from the repository!"
             exit 1
           fi
 
-          echo "Building Flutter project in directory: $TARGET_DIR"
-          cd $TARGET_DIR
+          PROJECT_DIR=$(dirname "$PUBSPEC_PATH")
+          echo "Found project directory at: $PROJECT_DIR"
+          
+          cd "$PROJECT_DIR"
           flutter pub get
           flutter build apk --release --no-tree-shake-icons
 
